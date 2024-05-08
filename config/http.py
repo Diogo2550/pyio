@@ -17,7 +17,6 @@ class AppMetadata():
 		
 	def _extract_uri_properties(self):
 		params = self.uri_app_params()
-		print(params)
 		
 		for prop in params: 
 			if prop.startswith('is:'):
@@ -25,8 +24,6 @@ class AppMetadata():
 				scale_data = scale.split('-')
 				self.width = int(scale_data[0]) if len(scale_data) > 0 else self.default_thumbsize
 				self.height = int(scale_data[1]) if len(scale_data) > 1 else self.width
-				print(self.width)
-				print(self.height)
 				
 	def uri_without_app_params(self):
 		extension_index = self.full_uri.rfind('.')
@@ -57,9 +54,13 @@ def filedir_from_uri(uri: str):
 	return path_from_uri(uri).replace(filename_from_uri(uri), '')
 
 def configure(environ):
+	from config.app import remote_base_uri, file_mode
 	global uri, origin, domain, path, filename, filedir, app_metadata
 	
-	uri = f"{environ['REQUEST_SCHEME']}://{environ['HTTP_HOST']}{environ['REQUEST_URI'].replace('ithumb', '')}"
+	if file_mode == 'local':
+		uri = f"{environ['REQUEST_SCHEME']}://{environ['HTTP_HOST']}{environ['REQUEST_URI'].replace('ithumb', '')}"
+	elif file_mode == 'remote':
+		uri = f"{remote_base_uri}{environ['REQUEST_URI'].replace('ithumb', '')}"
 	
 	app_metadata = AppMetadata(uri)
 	uri = app_metadata.uri_without_app_params()
