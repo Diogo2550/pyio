@@ -12,7 +12,7 @@ def create_video_thumbnail(video_path: str, video_output_path: str, thumb_w: int
         mkdir_recursive(_path)
         
     video_w, video_h = scale_aspect_ratio(video_path, thumb_w, thumb_h)
-    ffmpeg.input(video_path).filter('scale', video_w, video_h).filter('crop', thumb_w, thumb_h).output(output_file_path, vframes=1).run()
+    ffmpeg.input(video_path).filter('scale', video_w, video_h).filter('crop', thumb_w, thumb_h).output(output_file_path, vframes=1, loglevel="quiet").run()
     os.chmod(output_file_path, 0o755)
     return output_file_path
 
