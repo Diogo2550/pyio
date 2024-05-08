@@ -15,8 +15,11 @@ def main(environ, start_response):
 	
 	if appconf.file_mode == 'remote':
 		in_file_fullname = httpconf.uri
-	else:
-		in_file_fullname = os.path.join(server_videos_dir, httpconf.domain, file_url_path)
+	elif appconf.file_mode == 'local':
+		if appconf.local_base_dir != None:
+			in_file_fullname = os.path.join(appconf.local_base_dir, file_url_path)
+		else:
+			in_file_fullname = os.path.join(server_videos_dir, httpconf.domain, file_url_path)
 		
 	out_file_fullname = os.path.join(out_dir, httpconf.domain, file_url_path)
 	out_thumb_file_fullname = httpconf.app_metadata.generate_thumb_name(out_file_fullname)
