@@ -51,7 +51,7 @@ def schema_from_uri(uri: str):
 def filename_from_uri(uri: str):
 	return os.path.basename(uri)
 def filedir_from_uri(uri: str):
-	return path_from_uri(uri).replace(filename_from_uri(uri), '')
+	return path_from_uri(uri).replace(filename_from_uri(uri), '')	
 
 def configure(environ):
 	from config.app import remote_base_uri, file_mode

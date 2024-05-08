@@ -13,6 +13,9 @@ def main(environ, start_response):
 	file_url_path = httpconf.path.strip('/')
 	out_dir = 'medias'
 	
+	if appconf.ignore_prefix_dir != None:
+		file_url_path = file_url_path.removeprefix(appconf.ignore_prefix_dir)
+	
 	if appconf.file_mode == 'remote':
 		in_file_fullname = httpconf.uri
 	elif appconf.file_mode == 'local':
