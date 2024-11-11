@@ -3,18 +3,19 @@ from urllib.parse import urlparse
 
 class AppMetadata():
     
-    default_thumbsize = 320
+    resize: bool = False
     full_uri: str
     width: int
     height: int
     quality: int = 80
     keep_aspect: bool
     
+    sender = {
+        'host': ''
+    }
+    
     def __init__(self, uri: str) -> None:
-        self.full_uri = uri
-        self.width = self.default_thumbsize
-        self.height = self.default_thumbsize
-        
+        self.full_uri = uri        
         self._extract_uri_properties()
         
     def _extract_uri_properties(self):
@@ -23,9 +24,10 @@ class AppMetadata():
         for prop in params: 
             if prop.startswith('s:'):
                 scale = prop.replace('s:', '')
-                scale_data = scale.split('-')
-                self.width = int(scale_data[0]) if len(scale_data) > 0 else self.default_thumbsize
+                scale_data = scale.split('x')
+                self.width = int(scale_data[0]) if len(scale_data) > 0 else -1
                 self.height = int(scale_data[1]) if len(scale_data) > 1 else self.width
+                self.resize = True
             if prop.startswith('q:'):
                 quality = prop.replace('q:', '')
                 self.quality = int(quality)
@@ -37,16 +39,18 @@ class AppMetadata():
             #if prop.startswith('h:'):
             #    self.height = prop.replace('h:', '')
         
-        self.width = max(1, min(self.width, 2048))
-        self.height = max(1, min(self.height, 2048))
+        if self.resize:
+            self.width = max(1, min(self.width, 2048))
+            self.height = max(1, min(self.height, 2048))
         self.quality = max(1, min(self.quality, 100))
                 
     def uri_without_app_params(self):
         extension_index = self.full_uri.rfind('.')
         extension_size = self.full_uri.find('/', extension_index) - extension_index
         
-        uri = self.full_uri[0:extension_index + extension_size]
-        return uri
+        if extension_size < 0:
+            return self.full_uri
+        return self.full_uri[0:extension_index + extension_size]
         
     def uri_app_params(self):
         data = self.full_uri[self.full_uri.rfind('.'):].split('/')
@@ -55,19 +59,13 @@ class AppMetadata():
     
     def generate_thumb_name(self, out_file_fullname):
         base = f"{out_file_fullname[0:str(out_file_fullname).rfind('.')]}"
-        size = f"{self.width}x{self.height}"
+        size = f"{self.width}x{self.height}" if self.resize else 'original'
         quality = f"q{self.quality}"
         
         return f"{base}-{size}-{quality}.webp"
 
 def path_from_uri(uri: str):
     return urlparse(uri).path
-def domain_from_uri(uri: str):
-    return urlparse(uri).hostname
-def origin_from_uri(uri: str):
-    return urlparse(uri).hostname
-def schema_from_uri(uri: str):
-    return urlparse(uri).scheme
 def filename_from_uri(uri: str):
     return os.path.basename(uri)
 def filedir_from_uri(uri: str):
@@ -75,18 +73,25 @@ def filedir_from_uri(uri: str):
 
 def configure(environ):
     from config.app import remote_base_uri, file_mode
-    global uri, origin, domain, path, filename, filedir, app_metadata
+    global schema, uri, domain, path, filename, filedir, app_metadata, sender_origin
+    
+    if remote_base_uri:
+        sender_origin = remote_base_uri
+    else:
+        sender_origin = environ['HTTP_REFERER']
     
     if file_mode == 'local':
-        uri = f"{environ['wsgi.url_scheme']}://{environ['HTTP_HOST']}{environ['REQUEST_URI'].replace('thumb', '')}"
+        #uri = f"{environ['wsgi.url_scheme']}://{environ['HTTP_HOST']}{environ['REQUEST_URI'].replace('thumb', '')}"
+        uri = f"{environ['wsgi.url_scheme']}://{environ['HTTP_HOST']}{environ['REQUEST_URI']}"
     elif file_mode == 'remote':
-        uri = f"{remote_base_uri}{environ['REQUEST_URI'].replace('thumb', '')}"
+        #uri = f"{sender_origin.strip('/')}{environ['REQUEST_URI'].replace('thumb', '')}"
+        uri = f"{sender_origin.strip('/')}{environ['REQUEST_URI']}"
     
     app_metadata = AppMetadata(uri)
     uri = app_metadata.uri_without_app_params()
     
-    origin = origin_from_uri(uri)
-    domain = domain_from_uri(uri)
     path = path_from_uri(uri)
     filename = filename_from_uri(uri)
     filedir = filedir_from_uri(uri)
+    schema = environ['wsgi.url_scheme']
+    domain = environ['HTTP_HOST'].split(':')[0]
