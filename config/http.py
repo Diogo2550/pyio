@@ -58,7 +58,7 @@ def configure(environ):
 	global uri, origin, domain, path, filename, filedir, app_metadata
 	
 	if file_mode == 'local':
-		uri = f"{environ['HTTP_SCHEME']}://{environ['HTTP_HOST']}{environ['REQUEST_URI'].replace('ithumb', '')}"
+		uri = f"{environ['wsgi.url_scheme']}://{environ['HTTP_HOST']}{environ['REQUEST_URI'].replace('ithumb', '')}"
 	elif file_mode == 'remote':
 		uri = f"{remote_base_uri}{environ['REQUEST_URI'].replace('ithumb', '')}"
 	
