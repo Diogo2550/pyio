@@ -17,3 +17,12 @@ Olhar o arquivo uwsgi.ini e alterar os valores necessários, principalmente o:
 - processes
 - socket
 - http
+
+# API Reference
+
+Em modo local:
+Enviar uma requisição para {schema}://{host}/{path/file.mp4}/{param1:value/param2:value...}/thumb para gerar uma thumb do vídeo, onde:
+
+Params:
+[Size] s: width|width-height -> width|height sendo inteiros
+[Quality] q: 1 < q <= 100

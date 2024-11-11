@@ -1,8 +1,13 @@
 import ffmpeg
 import os
+from config.http import AppMetadata
 
-def create_video_thumbnail(video_path: str, video_output_path: str, thumb_w: int, thumb_h: int):
+def create_video_thumbnail(video_path: str, video_output_path: str, meta: AppMetadata):
     "Cria uma thumbnail e gera uma thumbnail"
+    thumb_w = meta.width
+    thumb_h = meta.height
+    thumb_q = meta.quality
+    
     output_file_path = video_output_path
     if(not media_exists(video_path)):
         return None
@@ -12,7 +17,7 @@ def create_video_thumbnail(video_path: str, video_output_path: str, thumb_w: int
         mkdir_recursive(_path)
         
     video_w, video_h = scale_aspect_ratio(video_path, thumb_w, thumb_h)
-    ffmpeg.input(video_path).filter('scale', video_w, video_h).filter('crop', thumb_w, thumb_h).output(output_file_path, vframes=1, loglevel="quiet").run()
+    ffmpeg.input(video_path).filter('scale', video_w, video_h).filter('crop', thumb_w, thumb_h).output(output_file_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
     os.chmod(output_file_path, 0o755)
     return output_file_path
 
@@ -48,9 +53,9 @@ def mkdir_recursive(full_path: str, mode: int = 0o755, relative_path: str = './'
     return mkdir_recursive(str.join('/', dirs), mode, dir_to_create)
 
 def media_exists(media_path: str):
-	from config.app import file_mode
-	
-	if file_mode == 'local':
-		return os.path.isfile(media_path)
-	elif file_mode == 'remote':
-		return True
+    from config.app import file_mode
+    
+    if file_mode == 'local':
+        return os.path.isfile(media_path)
+    elif file_mode == 'remote':
+        return True

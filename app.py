@@ -4,7 +4,12 @@ import config.app as appconf
 
 from iffmpeg import create_video_thumbnail, media_exists
 
-def main(environ, start_response):    
+#https://api.identify.app.br/storage/creatives/video/2024/8/20/1724112040-fac-167610.mp4/is:280-280/ithumb
+
+def main(environ, start_response):
+    import glob
+    print(glob.glob("/app/videos/*"))
+    
     import config.http as httpconf
     httpconf.configure(environ)
     
@@ -41,7 +46,7 @@ def main(environ, start_response):
         return ['Vídeo não encontrado!'.encode('utf-8')]
     
     # cria o arquivo, caso não exista
-    thumb_fullname = create_video_thumbnail(in_file_fullname, out_thumb_file_fullname, httpconf.app_metadata.width, httpconf.app_metadata.height)
+    thumb_fullname = create_video_thumbnail(in_file_fullname, out_thumb_file_fullname, httpconf.app_metadata)
     if(not thumb_fullname):
         start_response('500 Internal Server Error', [('Content-Type', 'text/plain')])
         return ['Não foi possível gerar o vídeo.'.encode('utf-8')]

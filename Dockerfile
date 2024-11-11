@@ -9,7 +9,8 @@ RUN apk update && apk upgrade --no-cache
 RUN apk add --no-cache \
 		python3-dev \
 		build-base \
-		linux-headers
+		linux-headers \
+        ffmpeg
 		
 COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
