@@ -16,7 +16,7 @@ def create_video_thumbnail(video_path: str, video_output_path: str, meta: AppMet
     
     video_w, video_h = scale_aspect_ratio(video_path, meta)
     
-    if meta.resize:
+    if meta.resize and not meta.keep_aspect:
         ffmpeg.input(video_path).filter('scale', video_w, video_h).filter('crop', meta.width, meta.height).output(output_file_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
     else:
         ffmpeg.input(video_path).filter('scale', video_w, video_h).output(output_file_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
@@ -31,14 +31,19 @@ def scale_aspect_ratio(video_path: str, meta: AppMetadata):
     video_ratio = video_w / video_h
     
     new_w = meta.width if meta.resize else video_w   
-    new_h = meta.width if meta.resize else video_h
+    new_h = meta.height if meta.resize else video_h
     
-    # faz o cálculo de height (novo / antigo) e pega o maior
+    # faz o cálculo de height (novo / antigo)
     ratio_x = new_w / video_w
     ratio_y = new_h / video_h
     multiplier = ratio_y
     
-    if ratio_x > ratio_y:
+    # pega o maior caso não precise manter o aspect ratio
+    if not meta.keep_aspect and ratio_x > ratio_y:
+        multiplier = ratio_x
+    
+    # pega o menor caso precise manter o aspect ratio
+    if meta.keep_aspect and ratio_x < ratio_y:
         multiplier = ratio_x
         
     return video_w * multiplier, video_h * multiplier

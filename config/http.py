@@ -7,8 +7,9 @@ class AppMetadata():
     full_uri: str
     width: int
     height: int
+    
     quality: int = 80
-    keep_aspect: bool
+    keep_aspect: bool = False
     
     sender = {
         'host': ''
@@ -31,6 +32,8 @@ class AppMetadata():
             if prop.startswith('q:'):
                 quality = prop.replace('q:', '')
                 self.quality = int(quality)
+            if prop.startswith('p:'):
+                self.keep_aspect = True
             # TODO: implementar
             #if prop.startswith('p:'):
             #    self.keep_aspect = True
@@ -59,7 +62,7 @@ class AppMetadata():
     
     def generate_thumb_name(self, out_file_fullname):
         base = f"{out_file_fullname[0:str(out_file_fullname).rfind('.')]}"
-        size = f"{self.width}x{self.height}" if self.resize else 'original'
+        size = f"{'AR' if self.keep_aspect else ''}{self.width}x{self.height}" if self.resize else 'original'
         quality = f"q{self.quality}"
         
         return f"{base}-{size}-{quality}.webp"
@@ -75,10 +78,11 @@ def configure(environ):
     from config.app import remote_base_uri, file_mode
     global schema, uri, domain, path, filename, filedir, app_metadata, sender_origin
     
-    if remote_base_uri:
-        sender_origin = remote_base_uri
-    else:
-        sender_origin = environ['HTTP_REFERER']
+    if file_mode == 'remote':
+        if remote_base_uri:
+            sender_origin = remote_base_uri
+        else:
+            sender_origin = environ['HTTP_REFERER']
     
     if file_mode == 'local':
         #uri = f"{environ['wsgi.url_scheme']}://{environ['HTTP_HOST']}{environ['REQUEST_URI'].replace('thumb', '')}"
