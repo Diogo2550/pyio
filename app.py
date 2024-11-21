@@ -36,7 +36,7 @@ def main(environ, start_response):
     # verifica se o arquivo existe
     out_exists = os.path.isfile(out_thumb_file_fullname)
     if(out_exists):
-        start_response('200 OK', [('Content-Type', 'image/webp')])
+        start_response('200 OK', [('Content-Type', 'image/webp'), ('Cache-Control', 'public, max-age=86400')])
         return open(out_thumb_file_fullname, 'rb').read()
         
     if not media_exists(input_file_fullname):
@@ -50,6 +50,6 @@ def main(environ, start_response):
         return ['Não foi possível gerar o vídeo.'.encode('utf-8')]
     
     # retorna o arquivo para o nginx
-    start_response('200 OK', [('Content-Type', 'image/webp')])
+    start_response('200 OK', [('Content-Type', 'image/webp'), ('Cache-Control', 'public, max-age=86400')])
     return open(out_thumb_file_fullname, 'rb').read()
     
