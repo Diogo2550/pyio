@@ -4,7 +4,7 @@ docker build -t thumb .
 
 ## Executar Produção
 
-docker run --name thumb -p 5000:5000 thumb 
+docker run --name thumb -p 5000:5000 --restart unless-stopped -d thumb
 
 ## Executar Desenvolvimento
 
@@ -25,4 +25,5 @@ Enviar uma requisição para {schema}://{host}/{path/file.mp4}/{param1:value/par
 
 Params:
 [Size] s: {width}|{width}x{height} -> width|height sendo inteiros
-[Quality] q: 1 < q <= 100
+[Quality] q:{quality} -> 1 < quality <= 100
+[Proportion] p: -> sua existência habilita a necessidade de mantera a proporção da imagem
