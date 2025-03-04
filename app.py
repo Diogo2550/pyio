@@ -4,8 +4,6 @@ import config.app as appconf
 
 from iffmpeg import create_video_thumbnail, media_exists
 
-#https://api.identify.app.br/storage/creatives/video/2024/8/20/1724112040-fac-167610.mp4/is:280-280/ithumb
-
 def main(environ, start_response):
     print("\n")
     import config.http as httpconf
