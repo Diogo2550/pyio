@@ -1,4 +1,4 @@
-# Otimizador de Imagens - Python
+# Python Image Optimizer - PyIO
 
 Este projeto foi criado com o intuito de **melhorar a performance** dos sites cuidando da **otimização dos arquivos de imagens**, permitindo que os mesmo sejam **convertidos para webp** (formato de arquivo + recomendado devido a sua alta compactação) e **redimensionamento** de tamanho, além de permitir **alterar a qualidade** da imagem.
 
@@ -48,7 +48,7 @@ Você também pode utilizar o docker em modo de desenvolvimento:
 
 Há uma imagem docker que você pode utilizar diretamente, sem ter de clonar o repositório do Github. Você pode utilizá-la com o comando:
 
-`docker run --name pyio -p 5000:5000 --restart unless-stopped -d REMOTE_BASE_URI={url_site} --rm pyio`
+`docker run --name pyio -p 5000:5000 --restart unless-stopped -d REMOTE_BASE_URI={url_site} diogo2550/pyio`
 
 Onde `url_site` é a base do site que terá as imagens otimizadas (ex. http://localhost:8080).
 
