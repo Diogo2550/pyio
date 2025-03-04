@@ -1,5 +1,14 @@
 # Python Image Optimizer - PyIO
 
+PyIO é uma ferramenta para otimização automática de imagens em websites. Ele converte imagens para o formato WebP e permite redimensionamento dinâmico, melhorando a performance do seu site sem comprometer a qualidade das imagens.
+
+### Funcionalidades
+
+- **Conversão automática para WebP:** Reduza o tamanho das imagens sem perda significativa de qualidade.
+- **Redimensionamento dinâmico:** Redimensione as imagens conforme a necessidade, sem precisar de novas versões da imagem.
+
+### Sobre
+
 Este projeto foi criado com o intuito de **melhorar a performance** dos sites cuidando da **otimização dos arquivos de imagens**, permitindo que os mesmo sejam **convertidos para webp** (formato de arquivo + recomendado devido a sua alta compactação) e **redimensionamento** de tamanho, além de permitir **alterar a qualidade** da imagem.
 
 **Obs:** por padrão, todas as imagens serão automaticamente convertidas para webp.
@@ -8,12 +17,12 @@ Este projeto foi criado com o intuito de **melhorar a performance** dos sites cu
 
 Tecnologias utilizadas para o desenvolvimento:
 
-- Python
+- Python 3
 - Docker
 - Ffmpeg
 - uWSGI
 
-# Como utilizar
+## Como utilizar
 
 Vamos imaginar que temos um site com o domímio `pyio.com`. Podemos adicionar este micro-serviço em um subdomínio (ex. `img.pyio.com`) e, a partir do site principal, começar a buscar as imagens do subdomínio.
 
@@ -30,29 +39,32 @@ mobile: `https://img.pyio.com/media/images/abc.jpg/s:200x200`.
 
 *Você pode ver mais em API de Referência, ao término deste README.*
 
-# Instalar projeto
+## Instalar projeto
+
+### Modo de Desenvolvimento
 
 Caso você queria utilizar o projeto em modo de desenvolvimento, você deverá:
 
 1. criar um ambiente virtual python
 2. executar o `pip install -r requirements.txt` para instalar os pacotes
 
-Você também pode utilizar o docker em modo de desenvolvimento:
+(Recomendado) Você também pode utilizar o projeto em modo de desenvolvimento com Docker, para isso:
 
 1. Clone o projeto em um local de preferência.
 2. Abra a pasta da raiz do projeto no console.
 3. Copie e cole o `.env.example` e modifique o `REMOTE_BASE_URI` para a URL do site que será otimizado (ex. http://localhost:8080)
-4. Execute o comando: docker run --name pyio -p 5000:5000 -v \`pwd\`/:/app pyio uwsgi --ini /app/uwsgi.ini --py-autoreload=1 --touch-reload=app.py
+4. execute o comando: `docker build -t pyio .`
+5. Execute o comando: docker run --name pyio -p 5000:5000 -v \`pwd\`/:/app pyio uwsgi --ini /app/uwsgi.ini --py-autoreload=1 --touch-reload=app.py
 
-## Executar Produção
+### Modo de Produção
 
-Há uma imagem docker que você pode utilizar diretamente, sem ter de clonar o repositório do Github. Você pode utilizá-la com o comando:
+Há uma imagem docker pública que você pode utilizar diretamente, sem ter de clonar o repositório do Github. Você pode utilizá-la com o comando:
 
 `docker run --name pyio -p 5000:5000 --restart unless-stopped -d REMOTE_BASE_URI={url_site} diogo2550/pyio`
 
 Onde `url_site` é a base do site que terá as imagens otimizadas (ex. http://localhost:8080).
 
-# Deploy
+## Deploy
 
 O projeto foi testado apenas em sites pequenos, por isso, para casos mais avançados pode ser necessário modificar os valores em no arquivo uwsgi.ini, principalmente o:
 
@@ -62,7 +74,7 @@ O projeto foi testado apenas em sites pequenos, por isso, para casos mais avanç
 
 O sistema também não foi programado para funcionar com paralelismo, então não sei dizer o quão impactante será a mudança na quantidade de processos.
 
-# API Reference
+## API Reference
 
 Para modificar uma imagem, é necessário enviar uma requisição para `{schema}://{host}/{caminho_imagem}/{parametros}`, tendo `parametros` o formato `parametro:valor`, sendo os modelos abaixo. 
 
@@ -86,3 +98,7 @@ Redimensionar imagem para 400x400 mantendo a proporção: http://localhost:5000/
 Altera a qualidade da imagem (quanto menor a qualidade, menor o tamanho): http://localhost:5000/images/imagem1.jpg/q:70
 
 Você também pode juntar todas as opções ao mesmo tempo e rendimensionar enquanto altera a qualidade.
+
+## Observações finais
+
+Este projeto foi criado com o intuito de resolver um problema particular e assim foi feito. Caso queira contribuir, sinta-se a vontade para abrir issues e/ou pull-requests, ou até mesmo clonar o projeto e seguir por conta própria.
