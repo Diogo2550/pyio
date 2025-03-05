@@ -16,13 +16,14 @@ Este projeto foi criado com o intuito de **melhorar a performance** dos sites cu
 ## Tecnologias
 
 Tecnologias utilizadas para o desenvolvimento:
+O projeto utiliza do servidor uWSGI para receber as requisições HTTP. Caso tenha interesse em modificar o projeto, acesse a documentação do mesmo [aqui](https://uwsgi-docs.readthedocs.io/en/latest/).
 
 - Python 3
 - Docker
 - Ffmpeg
 - uWSGI
 
-## Como utilizar
+## Como funciona
 
 Vamos imaginar que temos um site com o domímio `pyio.com`. Podemos adicionar este micro-serviço em um subdomínio (ex. `img.pyio.com`) e, a partir do site principal, começar a buscar as imagens do subdomínio.
 
@@ -60,7 +61,7 @@ Caso você queria utilizar o projeto em modo de desenvolvimento, você deverá:
 
 Há uma imagem docker pública que você pode utilizar diretamente, sem ter de clonar o repositório do Github. Você pode utilizá-la com o comando:
 
-`docker run --name pyio -p 5000:5000 --restart unless-stopped -d REMOTE_BASE_URI={url_site} diogo2550/pyio`
+`docker run --name pyio -p 5000:5000 --restart unless-stopped -d -e REMOTE_BASE_URI={url_site} diogo2550/pyio`
 
 Onde `url_site` é a base do site que terá as imagens otimizadas (ex. http://localhost:8080).
 

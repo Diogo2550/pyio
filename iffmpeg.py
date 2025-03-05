@@ -2,30 +2,29 @@ import ffmpeg
 import os
 from config.http import AppMetadata
 
-def create_video_thumbnail(video_path: str, video_output_path: str, meta: AppMetadata):
+def create_image(input_path: str, output_path: str, meta: AppMetadata):
     "Cria uma thumbnail e gera uma thumbnail"
     thumb_q = meta.quality
     
-    output_file_path = video_output_path
-    if(not media_exists(video_path)):
+    if(not media_exists(input_path)):
         return None
         
-    if(not os.path.exists(os.path.dirname(output_file_path))):
-        _path = os.path.dirname(output_file_path)
+    if(not os.path.exists(os.path.dirname(output_path))):
+        _path = os.path.dirname(output_path)
         mkdir_recursive(_path)
     
-    video_w, video_h = scale_aspect_ratio(video_path, meta)
+    video_w, video_h = scale_aspect_ratio(input_path, meta)
     
     if meta.resize and not meta.keep_aspect:
-        ffmpeg.input(video_path).filter('scale', video_w, video_h).filter('crop', meta.width, meta.height).output(output_file_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
+        ffmpeg.input(input_path).filter('scale', video_w, video_h).filter('crop', meta.width, meta.height).output(output_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
     else:
-        ffmpeg.input(video_path).filter('scale', video_w, video_h).output(output_file_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
+        ffmpeg.input(input_path).filter('scale', video_w, video_h).output(output_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
     
-    os.chmod(output_file_path, 0o755)
-    return output_file_path
+    os.chmod(output_path, 0o755)
+    return output_path
 
-def scale_aspect_ratio(video_path: str, meta: AppMetadata):
-    probe = ffmpeg.probe(video_path)
+def scale_aspect_ratio(input_path: str, meta: AppMetadata):
+    probe = ffmpeg.probe(input_path)
     video_w = int(probe['streams'][0]['width'])
     video_h = int(probe['streams'][0]['height'])
     video_ratio = video_w / video_h
@@ -65,8 +64,9 @@ def mkdir_recursive(full_path: str, mode: int = 0o755, relative_path: str = './'
 
 def media_exists(media_path: str):
     from config.app import file_mode
+    import requests
     
     if file_mode == 'local':
         return os.path.isfile(media_path)
     elif file_mode == 'remote':
-        return True
+        return requests.get(media_path)

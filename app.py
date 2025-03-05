@@ -2,12 +2,16 @@ import os
 
 import config.app as appconf
 
-from iffmpeg import create_video_thumbnail, media_exists
+from iffmpeg import create_image, media_exists
 
 def main(environ, start_response):
     print("\n")
     import config.http as httpconf
     httpconf.configure(environ)
+    
+    if httpconf.path == '':
+        start_response('200 OK', [('Content-Type', 'text/plain')])
+        return ['O pintinho diz: Pyio!'.encode('utf-8')]
     
     # declara variáveis
     server_videos_dir = appconf.videos_dir
@@ -39,10 +43,10 @@ def main(environ, start_response):
         
     if not media_exists(input_file_fullname):
         start_response('404 Not Found', [('Content-Type', 'text/plain')])
-        return ['Vídeo não encontrado!'.encode('utf-8')]
+        return ['Media não encontrado!'.encode('utf-8')]
     
     # cria o arquivo, caso não exista
-    thumb_fullname = create_video_thumbnail(input_file_fullname, out_thumb_file_fullname, httpconf.app_metadata)
+    thumb_fullname = create_image(input_file_fullname, out_thumb_file_fullname, httpconf.app_metadata)
     if(not thumb_fullname):
         start_response('500 Internal Server Error', [('Content-Type', 'text/plain')])
         return ['Não foi possível gerar o vídeo.'.encode('utf-8')]
