@@ -74,7 +74,7 @@ def filename_from_uri(uri: str):
 def filedir_from_uri(uri: str):
     return path_from_uri(uri).replace(filename_from_uri(uri), '')	
 
-def configure(environ):
+def configure(environ: dict):
     from config.app import remote_base_uri, file_mode
     global schema, uri, domain, path, filename, filedir, app_metadata, sender_origin
     
@@ -82,7 +82,7 @@ def configure(environ):
         if remote_base_uri:
             sender_origin = remote_base_uri
         else:
-            sender_origin = environ['HTTP_REFERER']
+            sender_origin = environ.get('HTTP_REFERER', '')
     
     if file_mode == 'local':
         #uri = f"{environ['wsgi.url_scheme']}://{environ['HTTP_HOST']}{environ['REQUEST_URI'].replace('thumb', '')}"

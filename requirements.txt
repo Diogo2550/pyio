@@ -1,4 +1,11 @@
+certifi==2025.1.31
+charset-normalizer==3.4.1
+dotenv==0.9.9
 ffmpeg-python==0.2.0
-uWSGI==2.0.25.1
+future==1.0.0
+idna==3.10
 python-dotenv==1.0.0
-requests
+q==2.7
+requests==2.32.3
+urllib3==2.3.0
+uWSGI==2.0.25.1

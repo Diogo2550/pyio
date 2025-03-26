@@ -3,3 +3,4 @@ medias
 .env
 wsgi.sock
 videos/
+env
