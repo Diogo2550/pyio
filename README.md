@@ -48,6 +48,8 @@ Caso você queria utilizar o projeto em modo de desenvolvimento, você deverá:
 
 1. criar um ambiente virtual python
 2. executar o `pip install -r requirements.txt` para instalar os pacotes
+3. configurar o `REMOTE_BASE_URI` no .env para a URL do site que será otimizado (ex. http://localhost:8080)
+4. executar o projeto com hotreload usando o comando `uwsgi --ini /app/uwsgi.ini --py-autoreload=1 --touch-reload=app.py`
 
 (Recomendado) Você também pode utilizar o projeto em modo de desenvolvimento com Docker, para isso:
 
