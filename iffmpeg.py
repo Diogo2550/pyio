@@ -1,5 +1,9 @@
 import ffmpeg
 import os
+import requests
+import time
+from io import BytesIO
+from PIL import Image
 from config.http import AppMetadata
 
 def create_image(input_path: str, output_path: str, meta: AppMetadata):
@@ -13,20 +17,26 @@ def create_image(input_path: str, output_path: str, meta: AppMetadata):
         _path = os.path.dirname(output_path)
         mkdir_recursive(_path)
     
-    video_w, video_h = scale_aspect_ratio(input_path, meta)
+    response = requests.get(input_path)
+    img = Image.open(BytesIO(response.content))
+    temp_path = f"{time.time()}-temp_img." + input_path.split('.')[-1]
+    img.save(temp_path)
+    video_w, video_h = scale_aspect_ratio(temp_path, meta)
     
     if meta.resize and not meta.keep_aspect:
-        ffmpeg.input(input_path).filter('scale', video_w, video_h).filter('crop', meta.width, meta.height).output(output_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
+        ffmpeg.input(temp_path).filter('scale', video_w, video_h).filter('crop', meta.width, meta.height).output(output_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
     else:
-        ffmpeg.input(input_path).filter('scale', video_w, video_h).output(output_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
+        ffmpeg.input(temp_path).filter('scale', video_w, video_h).output(output_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
     
     os.chmod(output_path, 0o755)
+    os.remove(temp_path)
     return output_path
 
 def scale_aspect_ratio(input_path: str, meta: AppMetadata):
-    probe = ffmpeg.probe(input_path)
-    video_w = int(probe['streams'][0]['width'])
-    video_h = int(probe['streams'][0]['height'])
+    video_w = video_h = 0
+    with Image.open(input_path) as img:
+        video_w = img.width
+        video_h = img.height
     video_ratio = video_w / video_h
     
     new_w = meta.width if meta.resize else video_w   
