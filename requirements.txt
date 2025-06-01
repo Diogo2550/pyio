@@ -5,6 +5,7 @@ ffmpeg-python==0.2.0
 future==1.0.0
 idna==3.10
 pillow==11.1.0
+pillow-avif-plugin==1.5.2
 python-dotenv==1.0.0
 q==2.7
 requests==2.32.3

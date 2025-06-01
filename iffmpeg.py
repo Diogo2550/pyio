@@ -3,8 +3,11 @@ import os
 import requests
 import time
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageFile
 from config.http import AppMetadata
+import pillow_avif
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 def create_image(input_path: str, output_path: str, meta: AppMetadata):
     "Cria uma thumbnail e gera uma thumbnail"
@@ -19,8 +22,14 @@ def create_image(input_path: str, output_path: str, meta: AppMetadata):
     
     response = requests.get(input_path)
     img = Image.open(BytesIO(response.content))
-    temp_path = f"{time.time()}-temp_img." + input_path.split('.')[-1]
-    img.save(temp_path)
+    extension = input_path.split('.')[-1]
+    temp_path = f"{time.time()}-temp_img."
+    if(extension == 'avif'):
+        temp_path += 'jpg'
+        img.convert('RGB').save(temp_path)
+    else:
+        temp_path += extension
+        img.save(temp_path)
     video_w, video_h = scale_aspect_ratio(temp_path, meta)
     
     if meta.resize and not meta.keep_aspect:
