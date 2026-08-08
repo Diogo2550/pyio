@@ -57,7 +57,17 @@ Caso você queria utilizar o projeto em modo de desenvolvimento, você deverá:
 2. Abra a pasta da raiz do projeto no console.
 3. Copie e cole o `.env.example` e modifique o `REMOTE_BASE_URI` para a URL do site que será otimizado (ex. http://localhost:8080)
 4. execute o comando: `docker build -t pyio .`
-5. Execute o comando:  ``docker run --rm --name pyio -p 5000:5000 -v `pwd`/:/app pyio uwsgi --ini /app/uwsgi.ini --py-autoreload=1 --touch-reload=app.py``
+5. Execute o comando:  ``docker run --rm --name pyio -p 5001:5000 -v `pwd`/:/app pyio uwsgi --ini /app/uwsgi.ini --py-autoreload=1 --touch-reload=app.py --processes 2``
+
+> No macOS, evite publicar na porta 5000: o AirPlay Receiver do sistema já escuta nela por padrão (System Settings > General > AirDrop & Handoff), e o Docker publica a porta sem avisar do conflito — as requisições acabam caindo no AirPlay em vez do container. Por isso os exemplos acima usam `5001:5000`.
+
+Também há um `Makefile` com atalhos pros comandos acima:
+
+- `make dev` — builda a imagem e sobe o container em modo desenvolvimento (hot-reload, porta 5001, 2 workers). Ajuste com `make dev WORKERS=4` (ou `PORT=...`).
+- `make build` — só builda a imagem local (`pyio`).
+- `make stop` / `make logs` — para o container / acompanha os logs.
+- `make docker-build` — builda a imagem taggeada para o Docker Hub (`diogo2550/pyio`).
+- `make docker-push` — builda e publica no Docker Hub (requer `docker login` feito antes).
 
 ### Modo de Produção
 
@@ -67,6 +77,12 @@ Há uma imagem docker pública que você pode utilizar diretamente, sem ter de c
 
 Onde `url_site` é a base do site que terá as imagens otimizadas (ex. http://localhost:8080).
 
+Para rodar com mais workers (sem precisar rebuildar a imagem), acrescente o comando completo do uwsgi com `--processes` no final — isso substitui o `CMD` padrão da imagem:
+
+`docker run --name pyio -p 5000:5000 --restart unless-stopped -d -e REMOTE_BASE_URI={url_site} diogo2550/pyio uwsgi --ini /app/uwsgi.ini --processes 4`
+
+Veja a seção [Deploy](#deploy) para mais detalhes sobre como escolher a quantidade de workers.
+
 ## Deploy
 
 O projeto foi testado apenas em sites pequenos, por isso, para casos mais avançados pode ser necessário modificar os valores em no arquivo uwsgi.ini, principalmente o:
@@ -75,7 +91,14 @@ O projeto foi testado apenas em sites pequenos, por isso, para casos mais avanç
 - socket
 - http
 
-O sistema também não foi programado para funcionar com paralelismo, então não sei dizer o quão impactante será a mudança na quantidade de processos.
+### Aumentando a quantidade de workers
+
+Cada worker é um processo uWSGI separado (modelo preforking), então mais workers significa mais requisições processadas em paralelo de verdade. Duas formas de configurar:
+
+- **Permanente:** edite o `processes` no `uwsgi.ini` (ex. `processes = 4`).
+- **Por execução:** passe `--processes N` na linha de comando, depois do `--ini` — ele sobrescreve o valor do arquivo. Ex.: `uwsgi --ini uwsgi.ini --processes 4`. Rodando via Docker: `make dev WORKERS=4` (ou adicione `--processes 4` no `docker run`).
+
+O cache de thumbnails em disco usa lock por arquivo (`fcntl.flock`) para coordenar geração/regeneração entre workers, então aumentar `processes` é seguro mesmo com múltiplos workers gerando imagens ao mesmo tempo.
 
 ## API Reference
 
