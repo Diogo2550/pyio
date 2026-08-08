@@ -16,3 +16,5 @@ file_mode = os.getenv('FILE_MODE', 'remote')
 remote_base_uri = os.getenv('REMOTE_BASE_URI')
 local_base_dir = os.getenv('LOCAL_BASE_DIR')
 ignore_prefix_dir = os.getenv('IGNORE_PREFIX_DIR')
+# segundos que uma thumb cacheada é servida sem checar se a origem mudou
+cache_revalidate_seconds = int(os.getenv('CACHE_REVALIDATE_SECONDS', '3600'))

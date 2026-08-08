@@ -1,4 +1,5 @@
 import ffmpeg
+import json
 import os
 import requests
 import time
@@ -12,14 +13,14 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 def create_image(input_path: str, output_path: str, meta: AppMetadata):
     "Cria uma thumbnail e gera uma thumbnail"
     thumb_q = meta.quality
-    
+
     if(not media_exists(input_path)):
         return None
-        
+
     if(not os.path.exists(os.path.dirname(output_path))):
         _path = os.path.dirname(output_path)
         mkdir_recursive(_path)
-    
+
     response = requests.get(input_path)
     img = Image.open(BytesIO(response.content))
     extension = input_path.split('.')[-1]
@@ -31,15 +32,69 @@ def create_image(input_path: str, output_path: str, meta: AppMetadata):
         temp_path += extension
         img.save(temp_path)
     video_w, video_h = scale_aspect_ratio(temp_path, meta)
-    
+
     if meta.resize and not meta.keep_aspect:
-        ffmpeg.input(temp_path).filter('scale', video_w, video_h).filter('crop', meta.width, meta.height).output(output_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
+        ffmpeg.input(temp_path).filter('scale', video_w, video_h).filter('crop', meta.width, meta.height).output(output_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run(overwrite_output=True)
     else:
-        ffmpeg.input(temp_path).filter('scale', video_w, video_h).output(output_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run()
-    
+        ffmpeg.input(temp_path).filter('scale', video_w, video_h).output(output_path, **{'qscale:v': thumb_q}, vframes=1, loglevel="quiet").run(overwrite_output=True)
+
     os.chmod(output_path, 0o755)
     os.remove(temp_path)
+    _write_origin_meta(output_path, response.headers)
     return output_path
+
+def _meta_path(output_path: str):
+    return output_path + '.meta.json'
+
+def _write_origin_meta(output_path: str, headers, checked_at: float = None):
+    meta = {
+        'etag': headers.get('ETag'),
+        'last_modified': headers.get('Last-Modified'),
+        'content_length': headers.get('Content-Length'),
+        'checked_at': checked_at if checked_at is not None else time.time(),
+    }
+    with open(_meta_path(output_path), 'w') as f:
+        json.dump(meta, f)
+
+def _read_origin_meta(output_path: str):
+    try:
+        with open(_meta_path(output_path), 'r') as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+def touch_origin_meta(output_path: str):
+    "Reseta o relógio de revalidação sem baixar/reprocessar a imagem"
+    meta = _read_origin_meta(output_path)
+    if meta is not None:
+        meta['checked_at'] = time.time()
+        with open(_meta_path(output_path), 'w') as f:
+            json.dump(meta, f)
+
+def is_cache_stale(output_path: str, revalidate_seconds: int):
+    "True se o cache não tem metadados ainda ou passou da janela de revalidação"
+    meta = _read_origin_meta(output_path)
+    if meta is None:
+        return True
+    return (time.time() - meta.get('checked_at', 0)) >= revalidate_seconds
+
+def origin_has_changed(input_path: str, output_path: str):
+    """Checagem leve (HEAD) contra a origem.
+    Retorna True (mudou), False (igual) ou None (não deu pra confirmar)."""
+    meta = _read_origin_meta(output_path)
+    if meta is None or (meta.get('etag') is None and meta.get('last_modified') is None):
+        return None
+    try:
+        response = requests.head(input_path, timeout=5)
+    except requests.RequestException:
+        return None
+    if response.status_code >= 400:
+        return None
+    if meta.get('etag') and response.headers.get('ETag'):
+        return response.headers['ETag'] != meta['etag']
+    if meta.get('last_modified') and response.headers.get('Last-Modified'):
+        return response.headers['Last-Modified'] != meta['last_modified']
+    return None
 
 def scale_aspect_ratio(input_path: str, meta: AppMetadata):
     video_w = video_h = 0

@@ -2,7 +2,7 @@ import os
 
 import config.app as appconf
 
-from iffmpeg import create_image, media_exists
+from iffmpeg import create_image, media_exists, is_cache_stale, origin_has_changed, touch_origin_meta
 
 def _parse_range(range_header, file_size):
     "Retorna (start, end) | None (sem range) | False (range inválido)"
@@ -31,7 +31,7 @@ def _image_response(start_response, environ, file_path, httpconf, is_canonical):
     stat = os.stat(file_path)
     file_size = stat.st_size
     etag = f'"{int(stat.st_mtime)}-{file_size:x}"'
-    cache_control = 'public, max-age=86400, immutable'
+    cache_control = f'public, max-age={appconf.cache_revalidate_seconds}, must-revalidate'
 
     if environ.get('HTTP_IF_NONE_MATCH') == etag:
         start_response('304 Not Modified', [('Cache-Control', cache_control), ('ETag', etag)])
@@ -110,6 +110,16 @@ def main(environ, start_response):
     # verifica se o arquivo existe
     out_exists = os.path.isfile(out_thumb_file_fullname)
     if(out_exists):
+        if is_cache_stale(out_thumb_file_fullname, appconf.cache_revalidate_seconds):
+            changed = origin_has_changed(input_file_fullname, out_thumb_file_fullname)
+            if changed:
+                regenerated = create_image(input_file_fullname, out_thumb_file_fullname, httpconf.app_metadata)
+                # se a origem sumiu/falhou, mantém servindo a versão em cache em vez de quebrar a URL
+                if not regenerated:
+                    touch_origin_meta(out_thumb_file_fullname)
+            elif changed is False:
+                touch_origin_meta(out_thumb_file_fullname)
+            # changed is None (origem não respondeu): serve o cache sem tocar o relógio, tenta de novo na próxima
         return _image_response(start_response, environ, out_thumb_file_fullname, httpconf, is_canonical)
 
     if not media_exists(input_file_fullname):
