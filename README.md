@@ -83,6 +83,15 @@ Para rodar com mais workers (sem precisar rebuildar a imagem), acrescente o coma
 
 Veja a seção [Deploy](#deploy) para mais detalhes sobre como escolher a quantidade de workers.
 
+### Publicação automática no Docker Hub
+
+Toda tag no formato `v{versao}` (ex. `v1.2.0`) empurrada para o repositório dispara o workflow [.github/workflows/docker-publish.yml](.github/workflows/docker-publish.yml), que builda e publica `diogo2550/pyio:{versao}` e `diogo2550/pyio:latest` no Docker Hub automaticamente.
+
+Pra isso funcionar, o repositório precisa ter dois secrets configurados em `Settings > Secrets and variables > Actions`:
+
+- `DOCKERHUB_USERNAME` — seu usuário do Docker Hub.
+- `DOCKERHUB_TOKEN` — um Access Token gerado em Docker Hub > Account Settings > Security > New Access Token (não use a senha da conta).
+
 ## Deploy
 
 O projeto foi testado apenas em sites pequenos, por isso, para casos mais avançados pode ser necessário modificar os valores em no arquivo uwsgi.ini, principalmente o:

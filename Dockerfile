@@ -1,4 +1,4 @@
-FROM python:3.9-alpine
+FROM python:3.12-alpine
 
 EXPOSE 5000
 
@@ -14,6 +14,7 @@ RUN apk add --no-cache \
 		
 COPY . /app
 COPY .env /app
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 CMD [ "uwsgi", "--ini", "/app/uwsgi.ini" ]
