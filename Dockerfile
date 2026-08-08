@@ -13,7 +13,6 @@ RUN apk add --no-cache \
         ffmpeg
 		
 COPY . /app
-COPY .env /app
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
