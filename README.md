@@ -57,7 +57,7 @@ Caso você queria utilizar o projeto em modo de desenvolvimento, você deverá:
 2. Abra a pasta da raiz do projeto no console.
 3. Copie e cole o `.env.example` e modifique o `REMOTE_BASE_URI` para a URL do site que será otimizado (ex. http://localhost:8080)
 4. execute o comando: `docker build -t pyio .`
-5. Execute o comando:  `docker run --rm --name pyio -p 5000:5000 -v \`pwd\`/:/app pyio uwsgi --ini /app/uwsgi.ini --py-autoreload=1 --touch-reload=app.py`
+5. Execute o comando:  ``docker run --rm --name pyio -p 5000:5000 -v `pwd`/:/app pyio uwsgi --ini /app/uwsgi.ini --py-autoreload=1 --touch-reload=app.py``
 
 ### Modo de Produção
 
